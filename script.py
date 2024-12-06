@@ -54,7 +54,8 @@ def previous_ranking(frame):
 df['RankingPrev'] = previous_ranking(df)
 print(df.columns.to_list())
 print(df.sort_values(by=['Player', 'Year']).tail(20))
-# df['RankingPrev'] = df.apply()
+
+
 ## perform single feature linear regressions here:
 
 ols = LinearRegression()
@@ -69,8 +70,9 @@ for col in columns:
     )
     doublefaults_wins = ols.fit(X_train, y_train)
     win_dict[col] = [doublefaults_wins.score(X_test, y_test)]
-    win_dict_sorted = dict(sorted(win_dict.items(), key=lambda item: item[1]))
-    print(win_dict_sorted)
+
+win_dict_sorted = dict(sorted(win_dict.items(), key=lambda item: item[1], reverse=True))
+print(list(win_dict_sorted.items())[0:3])
 
 winnings_dict = {}
 for col in columns:
@@ -80,36 +82,43 @@ for col in columns:
     )
     doublefaults_wins = ols.fit(X_train, y_train)
     winnings_dict[col] = [doublefaults_wins.score(X_test, y_test)]
-    winnings_dict_sorted = dict(sorted(winnings_dict.items(), key=lambda item: item[1]))
-    print(winnings_dict_sorted)
 
-
-
-
-
-
-
-## perform two feature linear regressions here:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+winnings_dict_sorted = dict(sorted(winnings_dict.items(), key=lambda item: item[1], reverse=True))
+print(list(winnings_dict_sorted.items())[0:3])
 
 
 
 
 ## perform multiple feature linear regressions here:
+for n_features in range(len(win_dict_sorted.items())):
+
+    try:
+
+        top_three_wins = [item[0] for item in list(win_dict_sorted.items())[0:n_features]]
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            df[top_three_wins], df[['Wins']],
+            train_size=0.8
+        )
+        wins_MLR_model = ols.fit(X_train, y_train)
+        print(f'MLR model score for wins w/ top {n_features} parameters from individual regressions:\nR^2 = {wins_MLR_model.score(X_test, y_test):.2f}')
+    
+    except ValueError as e:
+        print(f'\n\n{e}\n\nNeed at least one feature!')
+        continue
+
+for n_features in range(len(winnings_dict_sorted.items())):
+    try:
+
+        top_three_winnings = [item[0] for item in list(winnings_dict_sorted.items())[0:3]]
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            df[top_three_winnings], df[['Winnings']],
+            train_size=0.8
+        )
+        winnings_MLR_model = ols.fit(X_train, y_train)
+        print(f'MLR model score for winningss w/ top {n_features} parameters from individual regressions:\nR^2 = {winnings_MLR_model.score(X_test, y_test):.2f}')
+
+    except ValueError as e:
+        print(f'\n\n{e}\n\nNeed at least one feature!')
+        continue
